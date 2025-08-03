@@ -1,0 +1,47 @@
+version: "3.8"
+
+services:
+  php:
+    build: .
+    container_name: php-app
+    volumes:
+      - ./public:/var/www/html
+    networks:
+      - app-network
+
+  caddy:
+    image: caddy:2
+    container_name: caddy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - ./public:/var/www/html
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - php
+    networks:
+      - app-network
+
+volumes:
+  caddy_data:
+  caddy_config:
+
+networks:
+  app-network:
+    driver: bridge
+db:
+  image: mysql:8.0
+  container_name: mysql-db
+  restart: always
+  environment:
+    MYSQL_ROOT_PASSWORD: rootpass
+    MYSQL_DATABASE: myappdb
+    MYSQL_USER: myuser
+    MYSQL_PASSWORD: mypass
+  volumes:
+    - mysql_data:/var/lib/mysql
+  networks:
+    - app-network
